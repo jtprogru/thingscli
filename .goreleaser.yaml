@@ -1,0 +1,89 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+# thingscli speaks to Things 3 via /usr/bin/osascript, which only exists on
+# macOS. We deliberately do not ship linux/freebsd binaries — they would
+# build fine but error out at first command. Goreleaser is restricted to
+# darwin/{amd64,arm64} to keep that contract explicit.
+builds:
+  - id: things
+    main: ./cmd/things
+    binary: things
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/jtprogru/thingscli/internal/cli.Version={{.Version}} -X github.com/jtprogru/thingscli/internal/cli.Commit={{.Commit}} -X github.com/jtprogru/thingscli/internal/cli.Date={{.CommitDate}} -X github.com/jtprogru/thingscli/internal/cli.BuiltBy=goreleaser
+    builder: go
+
+archives:
+  - formats: ["tar.gz"]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+signs:
+  - artifacts: checksum
+    cmd: gpg2
+    args:
+      - "--batch"
+      - "-u"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+# We ship via Homebrew cask (not formula) deliberately. The standard
+# Homebrew convention is brew formula for CLI binaries, cask for GUI/.app,
+# so the strictly-correct move would be `brews:`. Cask matches what
+# srekit ships, keeping the user-facing install command consistent
+# across both tools (`brew install --cask <name>`), and gives us the
+# post-install xattr hook needed to strip com.apple.quarantine from the
+# unsigned downloaded binary so it runs without manual right-click-open.
+homebrew_casks:
+  # Cask name matches the binary name (`things`), not the project/repo name
+  # (`thingscli`). Goreleaser generates `binary "<cask-name>"` in the cask
+  # body, which becomes the symlink in $(brew --prefix)/bin/. If they
+  # diverge, `brew install` succeeds but the symlink dangles.
+  - name: things
+    repository:
+      owner: jtprogru
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Casks
+    homepage: "https://github.com/jtprogru/thingscli"
+    description: "CLI for Things 3 via AppleScript with runtime-probed multi-locale support"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/things"]
+          end

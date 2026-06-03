@@ -1,0 +1,129 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - contextcheck
+    - copyloopvar
+    - dupword
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exptostd
+    - fatcontext
+    - funcorder
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocritic
+    - godot
+    - gomoddirectives
+    - gosec
+    - gosmopolitan
+    - govet
+    - iface
+    - inamedparam
+    - ineffassign
+    - intrange
+    - mirror
+    - misspell
+    - nakedret
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - nolintlint
+    - nosprintfhostport
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - tagalign
+    - tagliatelle
+    - testableexamples
+    - testifylint
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    - zerologlint
+  exclusions:
+    generated: strict
+    warn-unused: false
+    presets:
+      - comments
+      - std-error-handling
+      - common-false-positives
+      - legacy
+    rules:
+      # Cobra command files use package-level vars/init by design.
+      - path: internal/cli/.*\.go
+        linters:
+          - gochecknoglobals
+          - gochecknoinits
+      # The locale table and AppleScript helper constants are intentional
+      # package-level state.
+      - path: internal/things/.*\.go
+        linters:
+          - gochecknoglobals
+      # AppleScript phrases like "to to dos" are valid syntax, not duplicate words.
+      - path: internal/things/ops\.go
+        linters:
+          - dupword
+      # The locale table intentionally embeds localized list names in many
+      # scripts (Han, Cyrillic, Spanish "momento", etc.). These are data, not
+      # accidental imports of foreign-language idioms or misspellings.
+      - path: internal/things/locale\.go
+        linters:
+          - gosmopolitan
+          - misspell
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+      - path-except: _test\.go
+        linters:
+          - forbidigo
+      - linters:
+          - staticcheck
+        text: "SA9003:"
+      - linters:
+          - lll
+        source: "^//go:generate "
+
+formatters:
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/jtprogru/thingscli)
+        - blank
+        - dot
+        - alias
+        - localmodule
+      no-inline-comments: true
+      no-prefix-comments: true
+      custom-order: true
+      no-lex-order: true
