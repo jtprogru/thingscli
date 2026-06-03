@@ -5,13 +5,13 @@ Small composable shell snippets built on the read/write split.
 ## All P1 todos in Today
 
 ```sh
-things today | jq '.[] | select(.tags | contains("P1"))'
+things today --json | jq '.[] | select(.tags | contains("P1"))'
 ```
 
 ## Bulk-tag a list
 
 ```sh
-things inbox | jq -r '.[].id' | while read id; do
+things inbox --json | jq -r '.[].id' | while read id; do
   things tag "$id" "triage"
 done
 ```
@@ -19,7 +19,7 @@ done
 ## Move everything tagged `someday` into the Someday list
 
 ```sh
-things anytime \
+things anytime --json \
   | jq -r '.[] | select(.tags | contains("someday")) | .id' \
   | xargs -n1 -I{} things schedule {} someday
 ```
@@ -27,7 +27,7 @@ things anytime \
 ## Project status table
 
 ```sh
-things projects \
+things projects --json \
   | jq -r '.[] | [.name, .area, .status] | @tsv' \
   | column -t -s$'\t'
 ```
@@ -35,7 +35,7 @@ things projects \
 ## Audit: open todos with no project and no area
 
 ```sh
-things inbox \
+things inbox --json \
   | jq '.[] | select(.project == "" and .area == "")'
 ```
 

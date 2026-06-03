@@ -1,6 +1,6 @@
 # thingscli
 
-A thin Go CLI over AppleScript for [Things 3](https://culturedcode.com/things/). Read commands emit JSON; write commands emit a short status line. Built-in list names ("Inbox", "Today", …) are auto-detected by probing Things at runtime, so one binary works on any installed Things UI language.
+A thin Go CLI over AppleScript for [Things 3](https://culturedcode.com/things/). Read commands print a compact table by default (`--json` for the structured form used in pipelines); write commands emit a short status line. Built-in list names ("Inbox", "Today", …) are auto-detected by probing Things at runtime, so one binary works on any installed Things UI language.
 
 [Documentation](https://jtprogru.github.io/thingscli/) · [Releases](https://github.com/jtprogru/thingscli/releases) · [Changelog](CHANGELOG.md)
 
@@ -15,7 +15,8 @@ go install github.com/jtprogru/thingscli/cmd/things@latest
 ## Use
 
 ```sh
-things today                           # JSON of today's todos
+things today                           # table of today's todos (id|name|status)
+things today --json | jq               # raw JSON for pipelines
 things search "review"                 # name substring search
 things add "Pay rent" --when tomorrow --tags "home"
 things done <id>                       # mark completed

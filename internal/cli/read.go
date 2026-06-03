@@ -27,7 +27,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(todos)
+				return renderTodos(todos)
 			},
 		},
 		&cobra.Command{
@@ -43,7 +43,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(todos)
+				return renderTodos(todos)
 			},
 		},
 		&cobra.Command{
@@ -59,7 +59,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(todos)
+				return renderTodos(todos)
 			},
 		},
 		&cobra.Command{
@@ -75,7 +75,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(t)
+				return renderTodo(t)
 			},
 		},
 		&cobra.Command{
@@ -91,7 +91,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(ps)
+				return renderProjects(ps)
 			},
 		},
 		&cobra.Command{
@@ -107,7 +107,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(as)
+				return renderAreas(as)
 			},
 		},
 		&cobra.Command{
@@ -123,7 +123,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(tags)
+				return renderTags(tags)
 			},
 		},
 		&cobra.Command{
@@ -135,7 +135,7 @@ func addReadCommands(root *cobra.Command) {
 				if err != nil {
 					return err
 				}
-				return printJSON(c.Locale)
+				return renderLocale(c.Locale)
 			},
 		},
 	)
@@ -155,7 +155,7 @@ func builtinListCmd(name, short string, key things.ListKey) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return printJSON(todos)
+			return renderTodos(todos)
 		},
 	}
 }

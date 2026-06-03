@@ -38,15 +38,16 @@ If your Things UI language isn't in the bundled table, the probe will return an 
 |---------------------|-------------------------------------------------------------------------|
 | `--lang <code>`     | Skip auto-detect, use this language's name table (e.g. `--lang ru`).    |
 | `--refresh-locale`  | Ignore the cache and re-probe Things.                                   |
-| `--pretty`          | Pretty-print JSON output for reading by humans.                         |
+| `--json`            | Emit raw JSON instead of the default table (read commands only).        |
+| `--pretty`          | Indent JSON output. Only meaningful with `--json`.                      |
 
 Known language codes: `en`, `ru`, `de`, `fr`, `es`, `it`, `ja`, `zh-Hans`, `pt-BR`, `nl`.
 
 ## Sanity check
 
 ```sh
-things projects --pretty
+things projects
 things today
 ```
 
-If both return JSON (possibly `[]`), you're set. If `osascript` errors, make sure Things 3 is installed and has been opened at least once.
+If both return a table (possibly empty), you're set. If `osascript` errors, make sure Things 3 is installed and has been opened at least once.

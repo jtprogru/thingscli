@@ -1,9 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
-	"os"
-
 	"github.com/jtprogru/thingscli/internal/things"
 	"github.com/spf13/cobra"
 )
@@ -11,6 +8,7 @@ import (
 var (
 	flagLang    string
 	flagRefresh bool
+	flagJSON    bool
 	flagPretty  bool
 )
 
@@ -21,8 +19,10 @@ func NewRoot() *cobra.Command {
 		Short: "CLI for Things 3 via AppleScript (multi-locale).",
 		Long: `things — thin CLI over AppleScript for Things 3.
 
-Read commands print JSON so they parse cleanly.
-Write commands print a short human-readable status line.
+Read commands print a compact table by default. Pass --json for the
+raw JSON form suitable for piping into jq or other tools; combine
+with --pretty for indented JSON. Write commands print a short
+human-readable status line.
 
 The built-in list names ("Inbox", "Today", ...) are auto-detected from
 the running Things 3 app on first use, then cached. Override with --lang
@@ -32,7 +32,8 @@ or refresh with --refresh-locale.`,
 	}
 	root.PersistentFlags().StringVar(&flagLang, "lang", "", "force locale (en, ru, de, fr, es, it, ja, zh-Hans, pt-BR, nl)")
 	root.PersistentFlags().BoolVar(&flagRefresh, "refresh-locale", false, "ignore cached locale and re-probe Things")
-	root.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "pretty-print JSON output")
+	root.PersistentFlags().BoolVar(&flagJSON, "json", false, "emit raw JSON instead of a table (read commands only)")
+	root.PersistentFlags().BoolVar(&flagPretty, "pretty", false, "indent JSON output (only meaningful with --json)")
 
 	addReadCommands(root)
 	addWriteCommands(root)
@@ -42,13 +43,4 @@ or refresh with --refresh-locale.`,
 
 func newClient() (*things.Client, error) {
 	return things.New(flagLang, flagRefresh)
-}
-
-func printJSON(v any) error {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetEscapeHTML(false)
-	if flagPretty {
-		enc.SetIndent("", "  ")
-	}
-	return enc.Encode(v)
 }

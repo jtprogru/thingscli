@@ -5,13 +5,13 @@
 ## Все P1-задачи на сегодня
 
 ```sh
-things today | jq '.[] | select(.tags | contains("P1"))'
+things today --json | jq '.[] | select(.tags | contains("P1"))'
 ```
 
 ## Массово навесить тег на список
 
 ```sh
-things inbox | jq -r '.[].id' | while read id; do
+things inbox --json | jq -r '.[].id' | while read id; do
   things tag "$id" "triage"
 done
 ```
@@ -19,7 +19,7 @@ done
 ## Перенести всё с тегом `someday` в Someday
 
 ```sh
-things anytime \
+things anytime --json \
   | jq -r '.[] | select(.tags | contains("someday")) | .id' \
   | xargs -n1 -I{} things schedule {} someday
 ```
@@ -27,7 +27,7 @@ things anytime \
 ## Статусы проектов в таблицу
 
 ```sh
-things projects \
+things projects --json \
   | jq -r '.[] | [.name, .area, .status] | @tsv' \
   | column -t -s$'\t'
 ```
@@ -35,7 +35,7 @@ things projects \
 ## Аудит: открытые задачи без проекта и без области
 
 ```sh
-things inbox \
+things inbox --json \
   | jq '.[] | select(.project == "" and .area == "")'
 ```
 

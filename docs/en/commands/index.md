@@ -2,8 +2,8 @@
 
 Commands fall into two groups by output contract:
 
-- **Read commands** emit JSON to stdout (array for lists, object for `show`/`locale`). They are safe to pipe into `jq`, scripts, or other tools. See [Reading](read.md).
-- **Write commands** emit a single short human-readable status line on success (e.g. `DONE <id>`) and a non-zero exit on failure. See [Writing](write.md).
+- **Read commands** emit a compact table by default — three columns for to-do lists (`ID`, `NAME`, `STATUS`), key:value blocks for single objects (`show`, `locale`), one line per tag for `tags`. Pass `--json` for the raw JSON form used in pipelines. See [Reading](read.md).
+- **Write commands** emit a single short human-readable status line on success (e.g. `DONE <id>`) and a non-zero exit on failure. The `--json` flag does not affect writes. See [Writing](write.md).
 
 ## Global flags
 
@@ -11,14 +11,15 @@ Commands fall into two groups by output contract:
 |---------------------|--------------------------------------------------------------------------|
 | `--lang <code>`     | Force a specific known language for the built-in list names.             |
 | `--refresh-locale`  | Re-probe Things and rewrite the cached locale file.                      |
-| `--pretty`          | Indent JSON output (read commands only).                                 |
+| `--json`            | Emit raw JSON instead of the default table (read commands only).         |
+| `--pretty`          | Indent JSON output. Only meaningful with `--json`.                       |
 
 ## Identifying todos
 
-All write commands take a Things to-do **id** as the first argument — the stable identifier returned by every read command as the `id` field. Never identify by name: names aren't unique and may change.
+All write commands take a Things to-do **id** as the first argument — the stable identifier. The default table view shows only the first 8 characters of each id for readability; the full id is available via `--json` or via `things show <prefix>`. Never identify by name: names aren't unique and may change.
 
 ```sh
-ID=$(things inbox | jq -r '.[0].id')
+ID=$(things inbox --json | jq -r '.[0].id')
 things done "$ID"
 ```
 

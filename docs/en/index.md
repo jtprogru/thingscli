@@ -4,7 +4,7 @@ A thin CLI over AppleScript for [Things 3](https://culturedcode.com/things/). Re
 
 ## Why
 
-- **Pipelines without regex.** `things today | jq '.[] | select(.tags | contains("P1"))'` — no parsing localized strings.
+- **Pipelines without regex.** `things today --json | jq '.[] | select(.tags | contains("P1"))'` — no parsing localized strings.
 - **No reliance on `things:///` URLs.** Full read API for filters/search/lookup, not only fire-and-forget writes.
 - **Single binary, multi-locale.** Probe-then-cache: the first call asks Things which list names it actually uses; the result lives in `~/.cache/thingscli/locale.json` for 30 days.
 
