@@ -1,0 +1,476 @@
+#!/usr/bin/env zsh
+# things — тонкий CLI поверх AppleScript для Things 3.
+#
+# Дизайн:
+#   - Чтение (list/today/inbox/projects/search/show) → выводит JSON-массив,
+#     чтобы вызывающий (Claude) надёжно парсил, а не разбирал текст регэкспами.
+#   - Запись (add/done/move/schedule/rename/tag/cancel) → точечные операции,
+#     каждая печатает короткий human-readable результат.
+#   - Удаление НЕ автоматизируется деструктивно: cancel помечает отменённой,
+#     trash перемещает в корзину Things (обратимо), без empty-trash.
+#
+# Все команды работают через `osascript -l AppleScript`.
+# Идентификация задач — по стабильному Things ID (id of to do), не по имени.
+#
+# Usage:
+#   things <command> [args...]
+# См. `things help`.
+
+set -e
+emulate -L zsh
+setopt no_nomatch
+
+APP="Things3"
+
+# --- helpers ---------------------------------------------------------------
+
+# Экранирование строки для вставки в AppleScript-литерал.
+_escape() {
+  # backslash → \\ , кавычка → \"
+  print -r -- "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
+_osa() {
+  /usr/bin/osascript -l AppleScript -e "$1"
+}
+
+# AppleScript-функция, которую переиспользуем: сериализация to-do в JSON-объект.
+# Возвращается как строка; экранируем кавычки и бэкслеши в значениях.
+read -r -d '' _JSON_HELPERS <<'APPLESCRIPT' || true
+on jsonEscape(s)
+	set s to s as string
+	set AppleScript's text item delimiters to "\\"
+	set parts to text items of s
+	set AppleScript's text item delimiters to "\\\\"
+	set s to parts as string
+	set AppleScript's text item delimiters to "\""
+	set parts to text items of s
+	set AppleScript's text item delimiters to "\\\""
+	set s to parts as string
+	set AppleScript's text item delimiters to (ASCII character 10)
+	set parts to text items of s
+	set AppleScript's text item delimiters to "\\n"
+	set s to parts as string
+	set AppleScript's text item delimiters to (ASCII character 9)
+	set parts to text items of s
+	set AppleScript's text item delimiters to "\\t"
+	set s to parts as string
+	set AppleScript's text item delimiters to ""
+	return s
+end jsonEscape
+
+on dateField(d)
+	if d is missing value then
+		return "null"
+	else
+		return "\"" & (my jsonEscape(d as string)) & "\""
+	end if
+end dateField
+
+on todoToJson(t)
+	tell application "Things3"
+		set theId to id of t
+		set theName to my jsonEscape(name of t)
+		set theNotes to my jsonEscape(notes of t)
+		set theStatus to (status of t) as string
+		set theTags to my jsonEscape(tag names of t)
+		set dDue to my dateField(due date of t)
+		set dStart to my dateField(activation date of t)
+		set projName to "null"
+		try
+			set projName to "\"" & my jsonEscape(name of project of t) & "\""
+		end try
+		set areaName to "null"
+		try
+			set areaName to "\"" & my jsonEscape(name of area of t) & "\""
+		end try
+	end tell
+	return "{\"id\":\"" & theId & "\",\"name\":\"" & theName & "\",\"notes\":\"" & theNotes & "\",\"status\":\"" & theStatus & "\",\"tags\":\"" & theTags & "\",\"due\":" & dDue & ",\"start\":" & dStart & ",\"project\":" & projName & ",\"area\":" & areaName & "}"
+end todoToJson
+APPLESCRIPT
+
+# Собрать JSON-массив из списка to-do заданного AppleScript-выражения "theTodos".
+_dump_list_script() {
+  # $1 = AppleScript, присваивающий переменной theTodos список to do
+  local body="$1"
+  cat <<APPLESCRIPT
+$_JSON_HELPERS
+
+tell application "$APP"
+	$body
+end tell
+set jsonParts to {}
+repeat with t in theTodos
+	set end of jsonParts to my todoToJson(t)
+end repeat
+set AppleScript's text item delimiters to ","
+set out to "[" & (jsonParts as string) & "]"
+set AppleScript's text item delimiters to ""
+return out
+APPLESCRIPT
+}
+
+# --- read commands ---------------------------------------------------------
+
+cmd_list() {
+  # things list "<ListName>"  (напр. "Входящие", "Сегодня", "Завтра")
+  local listName="${1:?usage: things list <ListName>}"
+  local esc; esc="$(_escape "$listName")"
+  _osa "$(_dump_list_script "set theTodos to to dos of list \"$esc\"")"
+}
+
+cmd_today() {
+  _osa "$(_dump_list_script 'set theTodos to to dos of list "Сегодня"')"
+}
+
+cmd_inbox() {
+  _osa "$(_dump_list_script 'set theTodos to to dos of list "Входящие"')"
+}
+
+cmd_upcoming() {
+  _osa "$(_dump_list_script 'set theTodos to to dos of list "Завтра"')"
+}
+
+cmd_anytime() {
+  _osa "$(_dump_list_script 'set theTodos to to dos of list "В любое время"')"
+}
+
+cmd_project() {
+  # things project "<ProjectName>"
+  local projName="${1:?usage: things project <ProjectName>}"
+  local esc; esc="$(_escape "$projName")"
+  _osa "$(_dump_list_script "set theTodos to to dos of project \"$esc\"")"
+}
+
+cmd_search() {
+  # things search "<substring>"  — поиск по имени среди всех незавершённых
+  local q="${1:?usage: things search <text>}"
+  local esc; esc="$(_escape "$q")"
+  _osa "$(_dump_list_script "set theTodos to (to dos whose name contains \"$esc\")")"
+}
+
+cmd_show() {
+  # things show "<id>"
+  local id="${1:?usage: things show <id>}"
+  local esc; esc="$(_escape "$id")"
+  _osa "$(cat <<APPLESCRIPT
+$_JSON_HELPERS
+tell application "$APP"
+	set t to to do id "$esc"
+end tell
+return my todoToJson(t)
+APPLESCRIPT
+)"
+}
+
+cmd_projects() {
+  _osa "$(cat <<APPLESCRIPT
+tell application "$APP"
+	set parts to {}
+	repeat with p in projects
+		set areaName to ""
+		try
+			set areaName to name of area of p
+		end try
+		set end of parts to "{\"id\":\"" & (id of p) & "\",\"name\":\"" & (name of p) & "\",\"area\":\"" & areaName & "\",\"status\":\"" & ((status of p) as string) & "\"}"
+	end repeat
+	set AppleScript's text item delimiters to ","
+	set out to "[" & (parts as string) & "]"
+	set AppleScript's text item delimiters to ""
+	return out
+end tell
+APPLESCRIPT
+)"
+}
+
+cmd_areas() {
+  _osa "$(cat <<APPLESCRIPT
+tell application "$APP"
+	set parts to {}
+	repeat with a in areas
+		set end of parts to "{\"id\":\"" & (id of a) & "\",\"name\":\"" & (name of a) & "\"}"
+	end repeat
+	set AppleScript's text item delimiters to ","
+	set out to "[" & (parts as string) & "]"
+	set AppleScript's text item delimiters to ""
+	return out
+end tell
+APPLESCRIPT
+)"
+}
+
+cmd_tags() {
+  _osa "$(cat <<APPLESCRIPT
+tell application "$APP"
+	set parts to {}
+	repeat with tg in tags
+		set end of parts to name of tg
+	end repeat
+	set AppleScript's text item delimiters to (ASCII character 10)
+	set out to parts as string
+	set AppleScript's text item delimiters to ""
+	return out
+end tell
+APPLESCRIPT
+)"
+}
+
+# --- write commands --------------------------------------------------------
+
+cmd_add() {
+  # things add "<title>" [--notes "..."] [--project "..."] [--area "..."]
+  #            [--when today|tomorrow|YYYY-MM-DD] [--tags "a,b"] [--list "Входящие"]
+  local title="${1:?usage: things add <title> [options]}"; shift || true
+  local notes="" project="" area="" whenv="" tags="" listName=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --notes)   notes="$2"; shift 2;;
+      --project) project="$2"; shift 2;;
+      --area)    area="$2"; shift 2;;
+      --when)    whenv="$2"; shift 2;;
+      --tags)    tags="$2"; shift 2;;
+      --list)    listName="$2"; shift 2;;
+      *) echo "unknown option: $1" >&2; return 2;;
+    esac
+  done
+
+  local props="name:\"$(_escape "$title")\""
+  [[ -n "$notes" ]] && props="$props, notes:\"$(_escape "$notes")\""
+  [[ -n "$tags"  ]] && props="$props, tag names:\"$(_escape "$tags")\""
+
+  local mover=""
+  if [[ -n "$project" ]]; then
+    mover="set project of newTodo to project \"$(_escape "$project")\""
+  elif [[ -n "$area" ]]; then
+    mover="move newTodo to area \"$(_escape "$area")\""
+  elif [[ -n "$listName" ]]; then
+    mover="move newTodo to list \"$(_escape "$listName")\""
+  fi
+
+  local scheduler=""
+  case "$whenv" in
+    "")        ;;
+    today)     scheduler='schedule newTodo for (current date)';;
+    tomorrow)  scheduler='schedule newTodo for ((current date) + 1 * days)';;
+    *)         scheduler="schedule newTodo for (my parseDate(\"$(_escape "$whenv")\"))";;
+  esac
+
+  _osa "$(cat <<APPLESCRIPT
+on parseDate(s)
+	-- s в формате YYYY-MM-DD
+	set y to (text 1 thru 4 of s) as integer
+	set m to (text 6 thru 7 of s) as integer
+	set d to (text 9 thru 10 of s) as integer
+	set dt to current date
+	set time of dt to 0
+	set year of dt to y
+	set month of dt to m
+	set day of dt to d
+	return dt
+end parseDate
+
+tell application "$APP"
+	set newTodo to make new to do with properties {$props}
+	$mover
+	$scheduler
+	return "ADDED " & (id of newTodo) & " :: " & (name of newTodo)
+end tell
+APPLESCRIPT
+)"
+}
+
+cmd_done() {
+  # things done "<id>"  — пометить выполненной
+  local id="${1:?usage: things done <id>}"
+  local esc; esc="$(_escape "$id")"
+  _osa "tell application \"$APP\" to set status of to do id \"$esc\" to completed
+return \"DONE $esc\""
+}
+
+cmd_cancel() {
+  # things cancel "<id>"  — пометить отменённой (не удаление)
+  local id="${1:?usage: things cancel <id>}"
+  local esc; esc="$(_escape "$id")"
+  _osa "tell application \"$APP\" to set status of to do id \"$esc\" to canceled
+return \"CANCELED $esc\""
+}
+
+cmd_reopen() {
+  local id="${1:?usage: things reopen <id>}"
+  local esc; esc="$(_escape "$id")"
+  _osa "tell application \"$APP\" to set status of to do id \"$esc\" to open
+return \"REOPENED $esc\""
+}
+
+cmd_rename() {
+  # things rename "<id>" "<new title>"
+  local id="${1:?usage: things rename <id> <new>}"; local new="${2:?usage: things rename <id> <new>}"
+  _osa "tell application \"$APP\" to set name of to do id \"$(_escape "$id")\" to \"$(_escape "$new")\"
+return \"RENAMED $(_escape "$id")\""
+}
+
+cmd_note() {
+  # things note "<id>" "<notes>"  — перезаписать заметку
+  local id="${1:?usage: things note <id> <text>}"; local txt="${2:-}"
+  _osa "tell application \"$APP\" to set notes of to do id \"$(_escape "$id")\" to \"$(_escape "$txt")\"
+return \"NOTE-SET $(_escape "$id")\""
+}
+
+cmd_move() {
+  # things move "<id>" --project "..." | --area "..." | --list "..."
+  local id="${1:?usage: things move <id> --project|--area|--list <name>}"; shift
+  local target="" kind=""
+  case "$1" in
+    --project) kind="project"; target="$2";;
+    --area)    kind="area";    target="$2";;
+    --list)    kind="list";    target="$2";;
+    *) echo "usage: things move <id> --project|--area|--list <name>" >&2; return 2;;
+  esac
+  local esc_id; esc_id="$(_escape "$id")"
+  local esc_t;  esc_t="$(_escape "$target")"
+  if [[ "$kind" == "project" ]]; then
+    _osa "tell application \"$APP\" to set project of to do id \"$esc_id\" to project \"$esc_t\"
+return \"MOVED $esc_id -> project $esc_t\""
+  else
+    _osa "tell application \"$APP\" to move (to do id \"$esc_id\") to $kind \"$esc_t\"
+return \"MOVED $esc_id -> $kind $esc_t\""
+  fi
+}
+
+cmd_schedule() {
+  # things schedule "<id>" today|tomorrow|YYYY-MM-DD|someday
+  local id="${1:?usage: things schedule <id> <when>}"; local whenv="${2:?usage: things schedule <id> <when>}"
+  local esc; esc="$(_escape "$id")"
+  local expr=""
+  case "$whenv" in
+    today)    expr='schedule (to do id "'"$esc"'") for (current date)';;
+    tomorrow) expr='schedule (to do id "'"$esc"'") for ((current date) + 1 * days)';;
+    someday)  expr='move (to do id "'"$esc"'") to list "Когда-нибудь"';;
+    *)        expr='schedule (to do id "'"$esc"'") for (my parseDate("'"$(_escape "$whenv")"'"))';;
+  esac
+  _osa "$(cat <<APPLESCRIPT
+on parseDate(s)
+	set y to (text 1 thru 4 of s) as integer
+	set m to (text 6 thru 7 of s) as integer
+	set d to (text 9 thru 10 of s) as integer
+	set dt to current date
+	set time of dt to 0
+	set year of dt to y
+	set month of dt to m
+	set day of dt to d
+	return dt
+end parseDate
+tell application "$APP"
+	$expr
+end tell
+return "SCHEDULED $esc -> $whenv"
+APPLESCRIPT
+)"
+}
+
+cmd_due() {
+  # things due "<id>" YYYY-MM-DD | clear
+  local id="${1:?usage: things due <id> <YYYY-MM-DD|clear>}"; local d="${2:?}"
+  local esc; esc="$(_escape "$id")"
+  if [[ "$d" == "clear" ]]; then
+    _osa "tell application \"$APP\" to set due date of to do id \"$esc\" to missing value
+return \"DUE-CLEARED $esc\""
+  else
+    _osa "$(cat <<APPLESCRIPT
+on parseDate(s)
+	set y to (text 1 thru 4 of s) as integer
+	set m to (text 6 thru 7 of s) as integer
+	set d to (text 9 thru 10 of s) as integer
+	set dt to current date
+	set time of dt to 0
+	set year of dt to y
+	set month of dt to m
+	set day of dt to d
+	return dt
+end parseDate
+tell application "$APP" to set due date of to do id "$esc" to (my parseDate("$(_escape "$d")"))
+return "DUE-SET $esc -> $d"
+APPLESCRIPT
+)"
+  fi
+}
+
+cmd_tag() {
+  # things tag "<id>" "tag1,tag2"  — перезаписать теги
+  local id="${1:?usage: things tag <id> <comma,tags>}"; local tags="${2:-}"
+  _osa "tell application \"$APP\" to set tag names of to do id \"$(_escape "$id")\" to \"$(_escape "$tags")\"
+return \"TAGGED $(_escape "$id")\""
+}
+
+cmd_trash() {
+  # things trash "<id>"  — переместить в корзину Things (обратимо, не empty trash)
+  local id="${1:?usage: things trash <id>}"
+  local esc; esc="$(_escape "$id")"
+  _osa "tell application \"$APP\" to move (to do id \"$esc\") to list \"Корзина\"
+return \"TRASHED $esc\""
+}
+
+cmd_help() {
+  cat <<'EOF'
+things — CLI для Things 3 (через AppleScript)
+
+ЧТЕНИЕ (выводят JSON):
+  things today                      задачи на сегодня
+  things inbox                      Входящие
+  things upcoming                   Завтра
+  things anytime                    В любое время
+  things list "<ListName>"          произвольный встроенный список
+  things project "<Name>"           задачи проекта
+  things search "<text>"            поиск по подстроке в названии
+  things show "<id>"                одна задача целиком
+  things projects                   список проектов (id,name,area)
+  things areas                      список областей (id,name)
+  things tags                       список тегов
+
+ЗАПИСЬ:
+  things add "<title>" [--notes ..] [--project ..|--area ..|--list ..]
+                       [--when today|tomorrow|YYYY-MM-DD] [--tags "a,b"]
+  things done "<id>"                пометить выполненной
+  things cancel "<id>"              пометить отменённой
+  things reopen "<id>"              вернуть в open
+  things rename "<id>" "<new>"      переименовать
+  things note "<id>" "<text>"       перезаписать заметку
+  things move "<id>" --project|--area|--list "<name>"
+  things schedule "<id>" today|tomorrow|YYYY-MM-DD|someday
+  things due "<id>" YYYY-MM-DD|clear
+  things tag "<id>" "a,b"           перезаписать теги
+  things trash "<id>"               в Корзину (обратимо)
+
+Идентификация задач — по стабильному Things id (поле "id" в JSON-выводе).
+EOF
+}
+
+# --- dispatch --------------------------------------------------------------
+
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  list)     cmd_list "$@";;
+  today)    cmd_today "$@";;
+  inbox)    cmd_inbox "$@";;
+  upcoming) cmd_upcoming "$@";;
+  anytime)  cmd_anytime "$@";;
+  project)  cmd_project "$@";;
+  search)   cmd_search "$@";;
+  show)     cmd_show "$@";;
+  projects) cmd_projects "$@";;
+  areas)    cmd_areas "$@";;
+  tags)     cmd_tags "$@";;
+  add)      cmd_add "$@";;
+  done)     cmd_done "$@";;
+  cancel)   cmd_cancel "$@";;
+  reopen)   cmd_reopen "$@";;
+  rename)   cmd_rename "$@";;
+  note)     cmd_note "$@";;
+  move)     cmd_move "$@";;
+  schedule) cmd_schedule "$@";;
+  due)      cmd_due "$@";;
+  tag)      cmd_tag "$@";;
+  trash)    cmd_trash "$@";;
+  help|-h|--help) cmd_help;;
+  *) echo "unknown command: $cmd (try: things help)" >&2; exit 2;;
+esac
