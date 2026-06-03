@@ -10,6 +10,20 @@ This file is the project-level human-curated history. The GoReleaser pipeline st
 
 ### Added
 
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+## [0.1.0] - 2026-06-04
+
+### Added
+
 - Initial Go implementation of the CLI, ported from the prior zsh prototype.
 - Read commands: `today`, `inbox`, `upcoming`, `anytime`, `someday`, `logbook`, `list`, `project`, `search`, `show`, `projects`, `areas`, `tags`, `locale`.
 - Write commands: `add`, `done`, `cancel`, `reopen`, `rename`, `note`, `move`, `schedule`, `due`, `tag`, `trash`.
@@ -22,11 +36,3 @@ This file is the project-level human-curated history. The GoReleaser pipeline st
 - GitHub Actions workflows: lint, test (race + coverage), GoReleaser on tag, MkDocs deploy.
 - Dependabot for `gomod` and `github-actions`, weekly cadence.
 - MkDocs Material site with `mkdocs-static-i18n` (English + Russian).
-
-### Changed
-
--
-
-### Fixed
-
--
