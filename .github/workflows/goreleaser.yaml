@@ -12,11 +12,14 @@ permissions:
 
 jobs:
   goreleaser:
-    # macOS runner so that future macOS-specific build/test steps (e.g.
-    # AppleScript-driven integration tests) can run in the same pipeline
-    # without spinning up a second matrix. Cross-compiling for darwin from
-    # linux works, but staying on macOS keeps the release one-runner-simple.
-    runs-on: macos-latest
+    # ubuntu-latest is ~10x cheaper than macos-latest on GitHub Actions
+    # minutes and cross-compiles darwin/{amd64,arm64} fine with
+    # CGO_ENABLED=0 (which our build already sets). There is nothing
+    # macOS-specific in the release pipeline — the binaries are built
+    # with the Go toolchain and the cask is just text generation.
+    # Integration tests that actually exec osascript live in tests.yaml,
+    # which stays on macos-latest.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
