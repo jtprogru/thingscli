@@ -20,6 +20,16 @@ This file is the project-level human-curated history. The GoReleaser pipeline st
 
 -
 
+## [0.2.1] - 2026-06-04
+
+### Fixed
+
+- Release pipeline failed signing artifacts because `.goreleaser.yaml` invoked `gpg2`, which does not exist on the macOS GitHub Actions runner. Switched the sign command to `gpg`, which is the GnuPG 2.x binary name on both macOS and modern Ubuntu, so this works on either runner.
+
+### Changed
+
+- Moved the `goreleaser` job from `macos-latest` to `ubuntu-latest`. The release pipeline has nothing macOS-specific (binaries are produced by the Go toolchain with `CGO_ENABLED=0`, cask body is text), so the cheaper Linux runner is the right default. Tests still run on `macos-latest` so future osascript-driven integration tests have somewhere to live.
+
 ## [0.2.0] - 2026-06-04
 
 ### Changed
