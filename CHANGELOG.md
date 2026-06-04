@@ -8,10 +8,24 @@ This file is the project-level human-curated history. The GoReleaser pipeline st
 
 ## [Unreleased]
 
+### Added
+
+-
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
+## [0.2.0] - 2026-06-04
+
 ### Changed
 
 - **Default output for read commands is now a compact table** instead of JSON. Lists (`today`, `inbox`, `upcoming`, `anytime`, `someday`, `logbook`, `list`, `project`, `search`) print three columns: `ID` (first 8 chars of the Things id), `NAME` (truncated at 60 runes with `…`), and `STATUS`. `show` and `locale` print key:value blocks. `projects` and `areas` print their own tables; `tags` prints one tag per line.
-- New `--json` flag restores the previous behavior. Combine with `--pretty` for indented JSON. Existing pipelines should add `--json` to their `things …` invocations.
+- New `--json` flag restores the previous behavior. Combine with `--pretty` for indented JSON. **Breaking:** existing pipelines must add `--json` to their `things …` invocations.
 - `--pretty` now only takes effect with `--json` (no functional change for callers who already paired them, but the help text reflects the dependency).
 
 ## [0.1.0] - 2026-06-04
