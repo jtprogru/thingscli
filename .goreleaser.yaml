@@ -50,7 +50,10 @@ changelog:
 
 signs:
   - artifacts: checksum
-    cmd: gpg2
+    # 'gpg' (GnuPG 2.x) is the cross-platform binary name; the older 'gpg2'
+    # only exists on some Linux distros where 'gpg' is still GnuPG 1.x.
+    # Modern Ubuntu and macOS both ship 'gpg' as GnuPG 2.x.
+    cmd: gpg
     args:
       - "--batch"
       - "-u"
