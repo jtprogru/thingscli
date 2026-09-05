@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/architecture/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/contributing/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/contributing/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/getting-started/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/getting-started/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/getting-started/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/recipes/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/recipes/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/recipes/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/commands/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/commands/read/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/read/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/read/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/commands/write/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/write/"/>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/write/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/architecture/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/architecture/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/contributing/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/contributing/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/getting-started/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/getting-started/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/getting-started/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/recipes/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/recipes/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/recipes/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/commands/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/commands/read/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/read/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/read/"/>
+    </url>
+    <url>
+        <loc>https://jtprogru.github.io/thingscli/ru/commands/write/</loc>
+        <lastmod>2026-09-05</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ru" href="https://jtprogru.github.io/thingscli/ru/commands/write/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://jtprogru.github.io/thingscli/commands/write/"/>
+    </url>
+</urlset>
