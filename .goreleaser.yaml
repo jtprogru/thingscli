@@ -84,9 +84,7 @@ homebrew_casks:
     directory: Casks
     homepage: "https://github.com/jtprogru/thingscli"
     description: "CLI for Things 3 via AppleScript with runtime-probed multi-locale support"
-    hooks:
-      post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/things"]
-          end
+    custom_block: |
+      postflight_steps do
+        run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/things"]
+      end
