@@ -18,7 +18,7 @@ This file is the project-level human-curated history. The GoReleaser pipeline st
 
 ### Fixed
 
--
+- Homebrew cask: the quarantine `postflight_steps` now comes from `hooks.post.install_steps` instead of `custom_block`. goreleaser 2.19 renders `custom_block` at the top of the cask, where `brew style` rejects it with `Cask/StanzaOrder`.
 
 ## [0.2.1] - 2026-06-04
 
